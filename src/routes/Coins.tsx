@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 const Container = styled.div`
     padding: 0px 20px;
+    max-width: 480px;
+    margin: 0 auto;
 `;
 
 const Header = styled.header`
@@ -35,48 +38,55 @@ const Title = styled.h1`
     font-size: 48px;
     color: ${props => props.theme.accentColor};
 `;
-const coins = [
-    {
-        id: "btc-bitcoin",
-        name: "Bitcoin",
-        symbol: "BTC",
-        rank: 1,
-        is_new: false,
-        is_active: true,
-        type: "coin",
-    },
-    {
-        id: "eth-ethereum",
-        name: "Ethereum",
-        symbol: "ETH",
-        rank: 2,
-        is_new: false,
-        is_active: true,
-        type: "coin",
-    },
-    {
-        id: "hex-hex",
-        name: "HEX",
-        symbol: "HEX",
-        rank: 3,
-        is_new: false,
-        is_active: true,
-        type: "token",
-    },
-];
+
+const Loader = styled.h1`
+    text-align: center;
+`;
+
+interface CoinInterface {
+    id: string;
+    name: string;
+    symbol: string;
+    rank: number;
+    is_new: boolean;
+    is_active: boolean;
+    type: string;
+}
+
+// Coins 컴포넌트 내에서의 상태는 다른 컴포넌트가 렌더링되면 모두 사라진다.
+// Coins 화면에서 api를 호출한다.
+// 이 방법은 Coins 화면에 접속할 때마다 api를 호출하는 문제를 야기한다.
 function Coins() {
+    const [coins, setCoins] = useState<CoinInterface[]>([]);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        // 함수를 만든 이유: async-await 를 사용해야 해서
+        // 즉시 실행 함수
+        (async () => {
+            const response = await fetch("https://api.coinpaprika.com/v1/coins");
+            if (response.ok) {
+                const json = await response.json();
+                setCoins(json.slice(100));
+                setLoading(false);
+            }
+        })();
+    }, []);
     return (
         <Container>
             <Header>
                 <Title>코인</Title>
             </Header>
-            <CoinsList>
-                {coins.map(coin => (
-                    <Coin key={coin.id}>
-                        <Link to={`/${coin.id}`}>{coin.name} &rarr;</Link>
-                    </Coin>
-                ))}
-            </CoinsList>
+            {loading ? (
+                <Loader>Loading...</Loader>
+            ) : (
+                <CoinsList>
+                    {coins.map(coin => (
+                        <Coin key={coin.id}>
+                            <Link to={`/${coin.id}`}>{coin.name}</Link>
+                        </Coin>
+                    ))}
+                </CoinsList>
+            )}
         </Container>
     );
 }
