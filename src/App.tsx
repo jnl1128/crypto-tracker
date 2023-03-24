@@ -2,8 +2,7 @@ import { createGlobalStyle } from "styled-components";
 import Router from "./routes/Router";
 
 const GlobalStyle = createGlobalStyle`
-
-@import url('https://fonts.googleapis.com/css2?family=Delicious+Handrawn&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -51,7 +50,7 @@ table {
   box-sizing: border-box;
 }
 body{
-  font-family: 'Delicious Handrawn', cursive;
+  font-family: 'Ubuntu', sans-serif;
   background-color: ${props => props.theme.bgColor};
   color: ${props => props.theme.textColor};
 }
