@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { fetchCoins } from "../api";
 
 const Container = styled.div`
     padding: 0px 20px;
@@ -54,7 +56,7 @@ const CoinWrapper = styled.div`
     display: flex;
 `;
 
-interface CoinInterface {
+interface ICoin {
     id: string;
     name: string;
     symbol: string;
@@ -68,30 +70,31 @@ interface CoinInterface {
 // Coins 화면에서 api를 호출한다.
 // 이 방법은 Coins 화면에 접속할 때마다 api를 호출하는 문제를 야기한다.
 function Coins() {
-    const [coins, setCoins] = useState<CoinInterface[]>([]);
-    const [loading, setLoading] = useState(true);
-    useEffect(() => {
-        // 함수를 만든 이유: async-await 를 사용해야 해서
-        // 즉시 실행 함수
-        (async () => {
-            const response = await fetch("https://api.coinpaprika.com/v1/coins");
-            if (response.ok) {
-                const json = await response.json();
-                setCoins(json.slice(100));
-                setLoading(false);
-            }
-        })();
-    }, []);
+    // const [coins, setCoins] = useState<CoinInterface[]>([]);
+    // const [loading, setLoading] = useState(true);
+    // useEffect(() => {
+    //     // 함수를 만든 이유: async-await 를 사용해야 해서
+    //     // 즉시 실행 함수
+    //     (async () => {
+    //         const response = await fetch("https://api.coinpaprika.com/v1/coins");
+    //         if (response.ok) {
+    //             const json = await response.json();
+    //             setCoins(json.slice(100));
+    //             setLoading(false);
+    //         }
+    //     })();
+    // }, []);
+    const { isLoading, data } = useQuery<ICoin[]>("allCoins", fetchCoins);
     return (
         <Container>
             <Header>
                 <Title>코인</Title>
             </Header>
-            {loading ? (
+            {isLoading ? (
                 <Loader>Loading...</Loader>
             ) : (
                 <CoinsList>
-                    {coins.map(coin => (
+                    {data?.slice(100).map(coin => (
                         <Coin key={coin.id}>
                             <Link
                                 to={{
