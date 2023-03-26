@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { Link, Route, Switch, useLocation, useParams, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { fetchCoinInfo, fetchCoinTickers } from "../api";
 import Chart from "./Chart";
 import Price from "./Price";
 
@@ -121,7 +123,7 @@ interface IInfoData {
     last_data_at: string;
 }
 
-interface IPriceData {
+interface ITickersData {
     id: string;
     name: string;
     symbol: string;
@@ -157,28 +159,33 @@ interface IPriceData {
 
 function Coin() {
     // const { coinId } = useParams<{ coinId: string }>();
-    const [loading, setLoading] = useState(true);
     const { coinId } = useParams<RouteParams>();
 
-    //react-router-dom이 보내주는 location object에 접근
-    //state는 coins화면을 열 때와 coin 화면으로 넘어갈 때 생성
+    // //react-router-dom이 보내주는 location object에 접근
+    // //state는 coins화면을 열 때와 coin 화면으로 넘어갈 때 생성
     const { state } = useLocation<RouteState>();
 
-    const [info, setInfo] = useState<IInfoData>();
-    const [priceInfo, setPriceInfo] = useState<IPriceData>();
+    // const [info, setInfo] = useState<IInfoData>();
+    // const [priceInfo, setPriceInfo] = useState<IPriceData>();
 
     const priceMatch = useRouteMatch("/:coinId/price");
     const chartMatch = useRouteMatch("/:coinId/chart");
 
-    useEffect(() => {
-        (async () => {
-            const infoData = await (await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)).json();
-            const priceData = await (await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)).json();
-            setInfo(infoData);
-            setPriceInfo(priceData);
-            setLoading(false);
-        })();
-    }, [coinId]);
+    // useEffect(() => {
+    //     (async () => {
+    //         const infoData = await (await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)).json();
+    //         const priceData = await (await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)).json();
+    //         setInfo(infoData);
+    //         setPriceInfo(priceData);
+    //         setLoading(false);
+    //     })();
+    // }, [coinId]);
+
+    const { isLoading: infoLoading, data: infoData } = useQuery<IInfoData>(["info", coinId], () => fetchCoinInfo(coinId));
+    const { isLoading: tickersLoading, data: tickersData } = useQuery<ITickersData>(["tickers", coinId], () => fetchCoinTickers(coinId));
+
+    const loading = infoLoading || tickersLoading;
+
     return (
         // state는 Coins 컴포넌트에서 넘어온 것
         // 따라서 Coins 컴포넌트에서 Link 를 클릭해서 넘어오지 않고 url을 직접 입력해서 Coin 컴포넌트가 렌더링된다면
@@ -186,7 +193,7 @@ function Coin() {
         // 예외 처리를 위한 ?를 붙여주자: state가 null이나 undefined가 아니면 state.name을 보여주고, 그렇지 않으면 "Loading"을 보여주라
         <Container>
             <Header>
-                <Title>{state?.name ? state.name : loading ? "loading..." : info?.name}</Title>
+                <Title>{state?.name ? state.name : loading ? "loading..." : infoData?.name}</Title>
             </Header>
             {loading ? (
                 <Loader>Loading...</Loader>
@@ -195,26 +202,26 @@ function Coin() {
                     <Overview>
                         <OverviewItem>
                             <span>Rank:</span>
-                            <span>{info?.rank}</span>
+                            <span>{infoData?.rank}</span>
                         </OverviewItem>
                         <OverviewItem>
                             <span>Symbol:</span>
-                            <span>{info?.symbol}</span>
+                            <span>{infoData?.symbol}</span>
                         </OverviewItem>
                         <OverviewItem>
                             <span>Open Source:</span>
-                            <span>{info?.open_source ? "Yes" : "No"}</span>
+                            <span>{infoData?.open_source ? "Yes" : "No"}</span>
                         </OverviewItem>
                     </Overview>
-                    <Description>{info?.description}</Description>
+                    <Description>{infoData?.description}</Description>
                     <Overview>
                         <OverviewItem>
                             <span>Total Supply:</span>
-                            <span>{priceInfo?.total_supply}</span>
+                            <span>{tickersData?.total_supply}</span>
                         </OverviewItem>
                         <OverviewItem>
                             <span>Max Supply:</span>
-                            <span>{priceInfo?.max_supply}</span>
+                            <span>{tickersData?.max_supply}</span>
                         </OverviewItem>
                     </Overview>
                     {/* 한번에 한 컴포넌트만 렌더링되길 바라니까 Switch 사용 */}
